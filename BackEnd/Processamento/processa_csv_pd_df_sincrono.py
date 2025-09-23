@@ -12,21 +12,20 @@ class Reader:
         return None
 
 
-    def count_rows(self, file_path):
+    def count_csv_rows(self, file_path):
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             return sum(1 for _ in f)
 
     def chunk_file_reader(self, file_path, proc_print, chunk_size, columns=[]):
-        df = pd.read_csv(file_path, nrows=100)
+        df = pd.read_csv(file_path, skiprows=1, nrows=100)
         if len(columns) == 0:
             columns = [f"Column_{i+1}" for i in range(len(df.columns))]
         loop_count = 1
-        final_size = self.count_rows(file_path)
+        final_size = self.count_csv_rows(file_path)
         bar_algorithm = 100/final_size
         start = time()
 
         for chunk in pd.read_csv(file_path, chunksize=chunk_size, on_bad_lines="warn"):
-            chunk.columns = columns
             if loop_count % proc_print == 0:
                 act = floor(loop_count * chunk_size * bar_algorithm)
                 print(f"Actual file process: {act}%")
@@ -40,7 +39,9 @@ class Reader:
 
 if __name__ == "__main__":
     r = Reader()
-    file_path = r"Processamento\FIles\deletions\deletions.csv"
+    #file_path = r"Processamento\Files\deletions\deletions.csv"
+    file_path = r"C:\Users\adm\Desktop\DataSets\customers-2000000.csv"
+
     columns = [
     "creation_timestamp (tempo de época Unix em milissegundos)",
     "criador",
