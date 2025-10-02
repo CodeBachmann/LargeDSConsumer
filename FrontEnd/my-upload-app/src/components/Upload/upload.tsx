@@ -1,49 +1,45 @@
-import React, { useEffect } from 'react';
-import Uppy from '@uppy/core';
-import { DragDrop } from '@uppy/react';
-import XHRUpload from '@uppy/xhr-upload';
-import '@uppy/core/dist/style.css';
-import '@uppy/drag-drop/dist/style.css';
+import React, { useMemo } from 'react'
+import Uppy from '@uppy/core'
+import type { Uppy as UppyClass } from '@uppy/core'
+import XHRUpload from '@uppy/xhr-upload'
+import { Dashboard } from '@uppy/react'
+
+import '@uppy/core/css/style.css'
+import '@uppy/dashboard/css/style.css'
 
 const Upload: React.FC = () => {
-  const uppy = Uppy({
-    restrictions: {
-      maxFileSize: 5 * 1024 * 1024 * 1024, // 5GB máximo, ajuste conforme precisa
-      allowedFileTypes: ['.csv', '.json', '.xlsx', '.xml'], // arquivos aceitos
-    },
-    autoProceed: true, // começa o upload ao escolher arquivo
-    debug: true,
-  });
+  const uppy = useMemo(() => {
+    const instance: UppyClass = new Uppy({
+      restrictions: {
+        maxFileSize: 5 * 1024 * 1024 * 1024, // 5GB
+        allowedFileTypes: ['.csv', '.json', '.xlsx', '.xml'],
+      },
+      autoProceed: true,
+      debug: true,
+    })
 
-  uppy.use(XHRUpload, {
-    endpoint: 'http://localhost:8000/upload', // ajuste para seu endpoint FastAPI
-    method: 'POST',
-    fieldName: 'file',
-    bundle: false,
-    limit: 3, // uploads paralelos
-    headers: {
-      // se precisar autenticação, pode colocar aqui
-    },
-  });
+    instance.use(XHRUpload, {
+      endpoint: 'http://localhost:8000/api/v1/uploads/upload-csv',
+      method: 'POST',
+      fieldName: 'file',
+      bundle: false,
+      limit: 3,
+    })
 
-  useEffect(() => {
-    return () => uppy.close(); // limpa quando componente desmonta
-  }, []);
+    return instance
+  }, [])
 
   return (
-    <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
+    <div style={{ maxWidth: '800px', margin: 'auto', padding: '20px' }}>
       <h2>Upload de Arquivos Grandes</h2>
-      <DragDrop
+      <Dashboard
         uppy={uppy}
-        locale={{
-          strings: {
-            // texto no drag and drop
-            dropHereOr: 'Arraste arquivos aqui ou clique para selecionar',
-          },
-        }}
+        height={400}
+        note="Arraste arquivos ou clique para selecionar"
+        proudlyDisplayPoweredByUppy={false}
       />
     </div>
-  );
-};
+  )
+}
 
-export default Upload;
+export default Upload
